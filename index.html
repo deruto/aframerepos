@@ -1,21 +1,27 @@
-<!DOCTYPE html>
 <html>
+  <head>
+    <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-particle-system-component@1.2.x/dist/aframe-particle-system-component.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.0/dist/aframe-extras.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fern-solutions/aframe-sky-background/dist/sky-background.umd.min.js"></script>
+  </head>
+  <body>
+    <a-scene>
+      <a-entity id="rain" particle-system="preset: rain; color: #24CAFF; particleCount: 5000"></a-entity>
 
-<head>
-	<title>A-Frame: Environment component</title>
-	<meta name="description" content="A-Frame Examples">
-	<script src="js/aframe-master-v1.3.0.min.js"></script>
-	<script src="js/aframe-environment-component.js"></script>
+      <a-entity id="sphere" geometry="primitive: sphere"
+                material="color: #EFEFEF; shader: flat"
+                position="0 0.15 -5"
+                light="type: point; intensity: 15.7"
+                animation="property: position; easing: easeInOutQuad; dir: alternate; dur: 1000; to: 0 -0.10 -5; loop: true"></a-entity>
 
-</head>
+      <a-entity id="ocean" ocean="density: 20; width: 50; depth: 50; speed: 4"
+                material="color: #9CE3F9; opacity: 0.75; metalness: 0; roughness: 1"
+                rotation="-90 0 0"></a-entity>
 
-<body>
+      <a-sky-background top-color="#EBEBF5" bottom-color="#B9B9D2"></a-sky-background>
 
-<!-- https://github.com/supermedium/aframe-environment-component -->
-<a-scene environment="preset: default;" renderer="antialias: true;">
-	  
-
-</a-scene>
-
-</body>
+      <a-entity id="light" light="type: ambient; color: #888"></a-entity>
+    </a-scene>
+  </body>
 </html>
