@@ -1,14 +1,118 @@
+<!DOCTYPE html>
 <html>
-  <head>
-    <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
-  </head>
-  <body>
-    <a-scene>
-      <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
-      <a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E"></a-sphere>
-      <a-cylinder position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D"></a-cylinder>
-      <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
-      <a-sky color="#ECECEC"></a-sky>
-    </a-scene>
-  </body>
+<head>
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <script>
+    AFRAME.registerComponent('rotate-y', {
+      schema: {speed: {default: 1}},
+      tick: function(time, delta) {
+        this.el.object3D.rotation.y += this.data.speed * delta / 1000;
+      }
+    });
+    
+    AFRAME.registerComponent('float', {
+      schema: {
+        amplitude: {default: 0.5},
+        speed: {default: 1}
+      },
+      init: function() {
+        this.startY = this.el.object3D.position.y;
+      },
+      tick: function(time) {
+        this.el.object3D.position.y = this.startY + Math.sin(time / 1000 * this.data.speed) * this.data.amplitude;
+      }
+    });
+    
+    AFRAME.registerComponent('pulse', {
+      tick: function(time) {
+        const scale = 1 + Math.sin(time / 500) * 0.2;
+        this.el.object3D.scale.set(scale, scale, scale);
+      }
+    });
+  </script>
+</head>
+<body>
+  <a-scene background="color: #000428">
+    <!-- Camera with controls -->
+    <a-entity id="rig" position="0 1.6 0">
+      <a-entity id="camera" camera look-controls wasd-controls="acceleration: 20">
+        <a-cursor color="#4CC3D9" fuse="true" fuse-timeout="1500"></a-cursor>
+      </a-entity>
+    </a-entity>
+    
+    <!-- Starfield background -->
+    <a-entity id="stars">
+      <a-sphere position="2 5 -10" radius="0.05" color="#ffffff" opacity="0.8"></a-sphere>
+      <a-sphere position="-3 4 -15" radius="0.08" color="#ffffff" opacity="0.9"></a-sphere>
+      <a-sphere position="5 6 -12" radius="0.06" color="#ffffff" opacity="0.7"></a-sphere>
+      <a-sphere position="-4 3 -20" radius="0.07" color="#ffffff" opacity="0.8"></a-sphere>
+      <a-sphere position="6 7 -18" radius="0.05" color="#ffffff" opacity="0.9"></a-sphere>
+      <a-sphere position="-2 8 -14" radius="0.06" color="#ffffff" opacity="0.7"></a-sphere>
+      <a-sphere position="4 2 -16" radius="0.08" color="#ffffff" opacity="0.8"></a-sphere>
+      <a-sphere position="-5 5 -11" radius="0.05" color="#ffffff" opacity="0.9"></a-sphere>
+    </a-entity>
+    
+    <!-- Central crystal structure -->
+    <a-entity position="0 2 -5" rotate-y="speed: 0.5">
+      <a-octahedron position="0 0 0" radius="1" color="#FF006E" metalness="0.8" roughness="0.2" pulse></a-octahedron>
+      <a-octahedron position="0 0 0" radius="1.2" color="#8338EC" opacity="0.3" wireframe="true" rotate-y="speed: -1"></a-octahedron>
+    </a-entity>
+    
+    <!-- Floating orbs -->
+    <a-sphere position="-3 2 -4" radius="0.5" color="#06FFA5" metalness="0.9" roughness="0.1" 
+              float="amplitude: 0.8; speed: 1.5" rotate-y="speed: 2"></a-sphere>
+    
+    <a-sphere position="3 2.5 -4" radius="0.5" color="#FFD60A" metalness="0.9" roughness="0.1" 
+              float="amplitude: 0.6; speed: 2" rotate-y="speed: -2"></a-sphere>
+    
+    <a-sphere position="0 3.5 -6" radius="0.4" color="#4CC3D9" metalness="0.9" roughness="0.1" 
+              float="amplitude: 1; speed: 1" rotate-y="speed: 3"></a-sphere>
+    
+    <!-- Interactive cubes -->
+    <a-box position="-2 1 -3" rotation="0 45 0" color="#F72585" metalness="0.7" roughness="0.3"
+           animation="property: rotation; to: 0 405 0; loop: true; dur: 4000; easing: linear"
+           event-set__enter="_event: mouseenter; color: #00FFF0"
+           event-set__leave="_event: mouseleave; color: #F72585"></a-box>
+    
+    <a-box position="2 1 -3" rotation="0 45 0" color="#7209B7" metalness="0.7" roughness="0.3"
+           animation="property: rotation; to: 0 405 0; loop: true; dur: 3000; easing: linear"
+           event-set__enter="_event: mouseenter; color: #00FFF0"
+           event-set__leave="_event: mouseleave; color: #7209B7"></a-box>
+    
+    <!-- Rings -->
+    <a-torus position="0 2 -5" radius="2" radius-tubular="0.05" color="#FF006E" opacity="0.6"
+             rotation="90 0 0" rotate-y="speed: 1"></a-torus>
+    
+    <a-torus position="0 2 -5" radius="2.5" radius-tubular="0.03" color="#3A86FF" opacity="0.4"
+             rotation="70 45 0" rotate-y="speed: -0.8"></a-torus>
+    
+    <!-- Platform -->
+    <a-cylinder position="0 0 -5" radius="4" height="0.2" color="#560BAD" opacity="0.7" 
+                metalness="0.8" roughness="0.4"></a-cylinder>
+    
+    <!-- Particle effects using boxes -->
+    <a-entity id="particles" position="0 2 -5">
+      <a-box position="1.5 0 0" width="0.1" height="0.1" depth="0.1" color="#FFD60A" opacity="0.8"
+             animation="property: position; to: 3 2 0; dur: 2000; loop: true; easing: linear"></a-box>
+      <a-box position="-1.5 0 0" width="0.1" height="0.1" depth="0.1" color="#06FFA5" opacity="0.8"
+             animation="property: position; to: -3 2 0; dur: 2000; loop: true; easing: linear"></a-box>
+      <a-box position="0 0 1.5" width="0.1" height="0.1" depth="0.1" color="#4CC3D9" opacity="0.8"
+             animation="property: position; to: 0 2 3; dur: 2000; loop: true; easing: linear"></a-box>
+      <a-box position="0 0 -1.5" width="0.1" height="0.1" depth="0.1" color="#FF006E" opacity="0.8"
+             animation="property: position; to: 0 2 -3; dur: 2000; loop: true; easing: linear"></a-box>
+    </a-entity>
+    
+    <!-- Lighting -->
+    <a-light type="ambient" intensity="0.4" color="#8338EC"></a-light>
+    <a-light type="point" position="0 3 -5" intensity="1.5" color="#FF006E" 
+             animation="property: intensity; to: 0.5; dir: alternate; dur: 1000; loop: true"></a-light>
+    <a-light type="point" position="-3 2 -4" intensity="1" color="#06FFA5"></a-light>
+    <a-light type="point" position="3 2 -4" intensity="1" color="#FFD60A"></a-light>
+    
+    <!-- Text -->
+    <a-text value="Welcome to the Cosmic Realm" position="0 4 -5" align="center" color="#00FFF0" 
+            width="6" font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+            animation="property: position; to: 0 4.2 -5; dir: alternate; dur: 2000; loop: true; easing: easeInOutSine"></a-text>
+  </a-scene>
+</body>
 </html>
