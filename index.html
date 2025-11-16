@@ -10,6 +10,19 @@
       }
     });
     
+    AFRAME.registerComponent('rotate-xyz', {
+      schema: {
+        x: {default: 0.5},
+        y: {default: 0.5},
+        z: {default: 0.5}
+      },
+      tick: function(time, delta) {
+        this.el.object3D.rotation.x += this.data.x * delta / 1000;
+        this.el.object3D.rotation.y += this.data.y * delta / 1000;
+        this.el.object3D.rotation.z += this.data.z * delta / 1000;
+      }
+    });
+    
     AFRAME.registerComponent('float', {
       schema: {
         amplitude: {default: 0.5},
@@ -29,90 +42,283 @@
         this.el.object3D.scale.set(scale, scale, scale);
       }
     });
+    
+    AFRAME.registerComponent('orbit', {
+      schema: {
+        radius: {default: 3},
+        speed: {default: 1},
+        height: {default: 2}
+      },
+      tick: function(time) {
+        const t = time / 1000 * this.data.speed;
+        this.el.object3D.position.x = Math.cos(t) * this.data.radius;
+        this.el.object3D.position.z = Math.sin(t) * this.data.radius;
+        this.el.object3D.position.y = this.data.height;
+      }
+    });
+    
+    AFRAME.registerComponent('bounce-click', {
+      init: function() {
+        this.el.addEventListener('click', () => {
+          this.el.emit('bounce');
+        });
+      }
+    });
   </script>
 </head>
 <body>
-  <a-scene background="color: #000428">
+  <a-scene background="color: #0a0015">
     <!-- Camera with controls -->
     <a-entity id="rig" position="0 1.6 0">
-      <a-entity id="camera" camera look-controls wasd-controls="acceleration: 20">
-        <a-cursor color="#4CC3D9" fuse="true" fuse-timeout="1500"></a-cursor>
+      <a-entity id="camera" camera look-controls wasd-controls="acceleration: 30">
+        <a-cursor color="#00FFF0" fuse="true" fuse-timeout="1000"
+                  animation__click="property: scale; from: 1 1 1; to: 1.5 1.5 1.5; dur: 200; startEvents: click"></a-cursor>
       </a-entity>
     </a-entity>
     
-    <!-- Starfield background -->
+    <!-- MASSIVE STAR FIELD - Everywhere! -->
     <a-entity id="stars">
-      <a-sphere position="2 5 -10" radius="0.05" color="#ffffff" opacity="0.8"></a-sphere>
-      <a-sphere position="-3 4 -15" radius="0.08" color="#ffffff" opacity="0.9"></a-sphere>
-      <a-sphere position="5 6 -12" radius="0.06" color="#ffffff" opacity="0.7"></a-sphere>
-      <a-sphere position="-4 3 -20" radius="0.07" color="#ffffff" opacity="0.8"></a-sphere>
-      <a-sphere position="6 7 -18" radius="0.05" color="#ffffff" opacity="0.9"></a-sphere>
-      <a-sphere position="-2 8 -14" radius="0.06" color="#ffffff" opacity="0.7"></a-sphere>
-      <a-sphere position="4 2 -16" radius="0.08" color="#ffffff" opacity="0.8"></a-sphere>
-      <a-sphere position="-5 5 -11" radius="0.05" color="#ffffff" opacity="0.9"></a-sphere>
+      <!-- Close stars -->
+      <a-sphere position="3 5 -8" radius="0.08" color="#ffffff" opacity="0.9"></a-sphere>
+      <a-sphere position="-4 6 -10" radius="0.06" color="#ffffff" opacity="0.8"></a-sphere>
+      <a-sphere position="5 4 -12" radius="0.07" color="#ffffff" opacity="0.9"></a-sphere>
+      <a-sphere position="-3 7 -15" radius="0.08" color="#ffffff" opacity="0.8"></a-sphere>
+      <!-- Far stars -->
+      <a-sphere position="8 8 -20" radius="0.1" color="#ffffff" opacity="0.9"></a-sphere>
+      <a-sphere position="-10 5 -25" radius="0.09" color="#ffffff" opacity="0.8"></a-sphere>
+      <a-sphere position="12 10 -30" radius="0.11" color="#ffffff" opacity="0.9"></a-sphere>
+      <a-sphere position="-8 12 -28" radius="0.08" color="#ffffff" opacity="0.8"></a-sphere>
+      <!-- Behind stars -->
+      <a-sphere position="-5 4 15" radius="0.08" color="#ffffff" opacity="0.8"></a-sphere>
+      <a-sphere position="6 6 18" radius="0.07" color="#ffffff" opacity="0.9"></a-sphere>
+      <a-sphere position="0 8 20" radius="0.09" color="#ffffff" opacity="0.8"></a-sphere>
+      <a-sphere position="-8 5 22" radius="0.08" color="#ffffff" opacity="0.9"></a-sphere>
+      <!-- Side stars -->
+      <a-sphere position="-12 4 -3" radius="0.07" color="#ffffff" opacity="0.8"></a-sphere>
+      <a-sphere position="15 6 2" radius="0.08" color="#ffffff" opacity="0.9"></a-sphere>
+      <a-sphere position="-14 8 5" radius="0.06" color="#ffffff" opacity="0.7"></a-sphere>
+      <a-sphere position="13 3 -5" radius="0.09" color="#ffffff" opacity="0.8"></a-sphere>
+      <!-- Above stars -->
+      <a-sphere position="4 15 -3" radius="0.08" color="#ffffff" opacity="0.9"></a-sphere>
+      <a-sphere position="-5 18 2" radius="0.07" color="#ffffff" opacity="0.8"></a-sphere>
+      <a-sphere position="6 20 -8" radius="0.09" color="#ffffff" opacity="0.9"></a-sphere>
     </a-entity>
     
-    <!-- Central crystal structure -->
+    <!-- FAR DISTANCE RING - Layer 1 (15-20 units away) -->
+    <a-entity id="far-ring">
+      <!-- Front section -->
+      <a-torus position="0 5 -18" radius="2" radius-tubular="0.15" color="#FF006E" metalness="0.9"
+               rotate-xyz="x: 1; y: 1; z: 0.5"></a-torus>
+      <a-icosahedron position="-5 3 -17" radius="0.8" color="#8338EC" metalness="0.9"
+                     float="amplitude: 1; speed: 1.2" rotate-xyz="x: 0.8; y: 1.5; z: 0.6"></a-icosahedron>
+      <a-icosahedron position="5 4 -19" radius="0.9" color="#06FFA5" metalness="0.9"
+                     float="amplitude: 0.8; speed: 1.5" rotate-xyz="x: 1; y: 0.8; z: 1.2"></a-icosahedron>
+      
+      <!-- Behind section -->
+      <a-torus position="0 6 18" radius="2.5" radius-tubular="0.2" color="#FFD60A" metalness="0.9"
+               rotate-xyz="x: 0.5; y: 1.2; z: 0.8"></a-torus>
+      <a-dodecahedron position="-6 4 17" radius="1" color="#4CC3D9" metalness="0.9"
+                      float="amplitude: 1.2; speed: 1" rotate-xyz="x: 1.2; y: 0.7; z: 0.9"></a-dodecahedron>
+      <a-dodecahedron position="6 5 19" radius="0.9" color="#F72585" metalness="0.9"
+                      float="amplitude: 0.9; speed: 1.3" rotate-xyz="x: 0.9; y: 1.1; z: 0.7"></a-dodecahedron>
+      
+      <!-- Left section -->
+      <a-cone position="-15 4 -2" radius-bottom="1" height="2.5" color="#FF006E" metalness="0.8"
+              float="amplitude: 1; speed: 1.4" rotate-xyz="x: 0.6; y: 1.3; z: 0.8"></a-cone>
+      <a-sphere position="-17 6 3" radius="0.9" color="#8338EC" metalness="1"
+                pulse animation="property: rotation; to: 0 360 0; dur: 4000; loop: true; easing: linear"></a-sphere>
+      
+      <!-- Right section -->
+      <a-cone position="15 5 1" radius-bottom="1.2" height="2.8" color="#06FFA5" metalness="0.8"
+              float="amplitude: 1.1; speed: 1.2" rotate-xyz="x: 0.8; y: 0.9; z: 1.1"></a-cone>
+      <a-sphere position="17 3 -4" radius="1" color="#FFD60A" metalness="1"
+                pulse animation="property: rotation; to: 360 0 360; dur: 5000; loop: true; easing: linear"></a-sphere>
+    </a-entity>
+    
+    <!-- MID DISTANCE - Layer 2 (10-15 units away) -->
+    <a-entity id="mid-ring">
+      <!-- Front arc -->
+      <a-octahedron position="-8 3 -12" radius="1" color="#7209B7" metalness="0.9"
+                    float="amplitude: 1.5; speed: 1.1" rotate-xyz="x: 1.2; y: 1.5; z: 0.7"
+                    bounce-click animation__bounce="property: scale; to: 1.5 1.5 1.5; dur: 300; startEvents: bounce; dir: alternate; loop: 2"></a-octahedron>
+      <a-octahedron position="8 4 -13" radius="1.1" color="#FF006E" metalness="0.9"
+                    float="amplitude: 1.2; speed: 1.4" rotate-xyz="x: 0.9; y: 1.2; z: 1.3"
+                    bounce-click animation__bounce="property: scale; to: 1.5 1.5 1.5; dur: 300; startEvents: bounce; dir: alternate; loop: 2"></a-octahedron>
+      <a-box position="0 6 -14" width="1.5" height="1.5" depth="1.5" color="#4CC3D9" metalness="0.8"
+             rotate-xyz="x: 1; y: 1; z: 1"
+             bounce-click event-set__enter="_event: mouseenter; color: #00FFF0" event-set__leave="_event: mouseleave; color: #4CC3D9"></a-box>
+      
+      <!-- Behind arc -->
+      <a-tetrahedron position="-7 5 12" radius="1.2" color="#FFD60A" metalness="0.9"
+                     float="amplitude: 1.3; speed: 1.3" rotate-xyz="x: 1.3; y: 0.8; z: 1.1"></a-tetrahedron>
+      <a-tetrahedron position="7 4 14" radius="1" color="#06FFA5" metalness="0.9"
+                     float="amplitude: 1.4; speed: 1" rotate-xyz="x: 0.7; y: 1.4; z: 0.9"></a-tetrahedron>
+      <a-sphere position="0 7 13" radius="1.2" color="#8338EC" metalness="1" roughness="0"
+                animation="property: rotation; to: 0 0 360; dur: 3000; loop: true; easing: linear"
+                pulse></a-sphere>
+      
+      <!-- Left arc -->
+      <a-dodecahedron position="-12 2 -5" radius="1.3" color="#F72585" metalness="0.9"
+                      float="amplitude: 1.6; speed: 0.9" rotate-xyz="x: 1.1; y: 0.9; z: 1.2"
+                      bounce-click animation__bounce="property: rotation; to: 360 360 0; dur: 500; startEvents: bounce"></a-dodecahedron>
+      <a-dodecahedron position="-13 5 5" radius="1.1" color="#4CC3D9" metalness="0.9"
+                      float="amplitude: 1.4; speed: 1.2" rotate-xyz="x: 0.8; y: 1.3; z: 0.8"></a-dodecahedron>
+      
+      <!-- Right arc -->
+      <a-icosahedron position="12 3 -6" radius="1.2" color="#FF006E" metalness="0.9"
+                     float="amplitude: 1.5; speed: 1.1" rotate-xyz="x: 1.4; y: 0.7; z: 1"></a-icosahedron>
+      <a-icosahedron position="13 6 4" radius="1" color="#FFD60A" metalness="0.9"
+                     float="amplitude: 1.3; speed: 1.3" rotate-xyz="x: 0.9; y: 1.2; z: 1.1"></a-icosahedron>
+      
+      <!-- Above -->
+      <a-torus position="-4 12 -3" radius="1.5" radius-tubular="0.2" color="#8338EC" opacity="0.8"
+               rotate-xyz="x: 1; y: 1; z: 1"></a-torus>
+      <a-torus position="4 13 2" radius="1.8" radius-tubular="0.25" color="#06FFA5" opacity="0.7"
+               rotate-xyz="x: 0.8; y: 1.2; z: 0.7"></a-torus>
+    </a-entity>
+    
+    <!-- CLOSE RANGE - Layer 3 (5-10 units away) -->
+    <a-entity id="close-ring">
+      <!-- Front scattered -->
+      <a-sphere position="-4 2 -7" radius="0.7" color="#FFD60A" metalness="0.9"
+                float="amplitude: 0.8; speed: 1.6" rotate-y="speed: 2"
+                bounce-click animation__bounce="property: position; to: -4.5 2 -7; dur: 200; startEvents: bounce; dir: alternate; loop: 2"></a-sphere>
+      <a-sphere position="4 3 -8" radius="0.8" color="#06FFA5" metalness="0.9"
+                float="amplitude: 0.9; speed: 1.8" rotate-y="speed: -2.5"
+                bounce-click animation__bounce="property: position; to: 4.5 3 -8; dur: 200; startEvents: bounce; dir: alternate; loop: 2"></a-sphere>
+      <a-box position="-3 4 -9" width="1" height="1" depth="1" color="#FF006E" metalness="0.8"
+             rotate-xyz="x: 1.5; y: 1; z: 1.5"
+             bounce-click event-set__enter="_event: mouseenter; color: #00FFF0; scale: 1.3 1.3 1.3"
+             event-set__leave="_event: mouseleave; color: #FF006E; scale: 1 1 1"></a-box>
+      <a-box position="3 2.5 -7" width="0.9" height="0.9" depth="0.9" color="#8338EC" metalness="0.8"
+             rotate-xyz="x: 1; y: 1.8; z: 1"
+             bounce-click event-set__enter="_event: mouseenter; color: #FFD60A; scale: 1.3 1.3 1.3"
+             event-set__leave="_event: mouseleave; color: #8338EC; scale: 1 1 1"></a-box>
+      
+      <!-- Behind scattered -->
+      <a-cone position="-5 3 9" radius-bottom="0.7" height="1.8" color="#4CC3D9" metalness="0.8"
+              float="amplitude: 1; speed: 1.7" rotate-xyz="x: 0.8; y: 1.5; z: 0.6"></a-cone>
+      <a-cone position="5 4 10" radius-bottom="0.8" height="2" color="#F72585" metalness="0.8"
+              float="amplitude: 1.1; speed: 1.5" rotate-xyz="x: 1.2; y: 1; z: 1.4"></a-cone>
+      <a-octahedron position="0 5 11" radius="0.9" color="#FFD60A" metalness="0.9"
+                    float="amplitude: 1.2; speed: 1.4" rotate-xyz="x: 1.3; y: 1.3; z: 0.8"></a-octahedron>
+      
+      <!-- Left scattered -->
+      <a-tetrahedron position="-9 2 -3" radius="0.9" color="#06FFA5" metalness="0.9"
+                     float="amplitude: 1; speed: 1.6" rotate-xyz="x: 1.4; y: 0.9; z: 1.1"></a-tetrahedron>
+      <a-tetrahedron position="-8 4 2" radius="0.8" color="#FF006E" metalness="0.9"
+                     float="amplitude: 0.9; speed: 1.8" rotate-xyz="x: 0.9; y: 1.6; z: 0.7"></a-tetrahedron>
+      <a-icosahedron position="-10 3 0" radius="0.7" color="#8338EC" metalness="0.9"
+                     float="amplitude: 1.1; speed: 1.3" rotate-xyz="x: 1.1; y: 1.1; z: 1.1"></a-icosahedron>
+      
+      <!-- Right scattered -->
+      <a-dodecahedron position="9 3 -2" radius="0.8" color="#7209B7" metalness="0.9"
+                      float="amplitude: 1; speed: 1.5" rotate-xyz="x: 1.2; y: 0.8; z: 1.3"></a-dodecahedron>
+      <a-dodecahedron position="8 2 3" radius="0.9" color="#4CC3D9" metalness="0.9"
+                      float="amplitude: 1.2; speed: 1.2" rotate-xyz="x: 0.8; y: 1.4; z: 0.9"></a-dodecahedron>
+      <a-sphere position="10 4 1" radius="0.8" color="#FFD60A" metalness="1"
+                pulse animation="property: rotation; to: 360 360 0; dur: 2500; loop: true; easing: linear"></a-sphere>
+      
+      <!-- Above scattered -->
+      <a-cone position="-2 10 -4" radius-bottom="0.8" height="2" color="#FF006E" metalness="0.8"
+              float="amplitude: 1.2; speed: 1.4" rotate-xyz="x: 1; y: 1; z: 1"></a-cone>
+      <a-cone position="2 11 1" radius-bottom="0.9" height="2.2" color="#06FFA5" metalness="0.8"
+              float="amplitude: 1; speed: 1.6" rotate-xyz="x: 0.7; y: 1.3; z: 0.8"></a-cone>
+      <a-box position="0 12 -2" width="1.2" height="1.2" depth="1.2" color="#8338EC" metalness="0.8"
+             rotate-xyz="x: 1.5; y: 1.5; z: 1.5" pulse></a-box>
+    </a-entity>
+    
+    <!-- IMMEDIATE AREA - Layer 4 (0-5 units) -->
+    <a-entity id="immediate">
+      <!-- Above head -->
+      <a-sphere position="0 4 0" radius="0.5" color="#FF006E" metalness="0.9" pulse
+                bounce-click animation__bounce="property: position; to: 0 3.5 0; dur: 300; startEvents: bounce; dir: alternate; loop: 2"></a-sphere>
+      <a-torus position="0 4 0" radius="0.8" radius-tubular="0.05" color="#FFD60A" opacity="0.7"
+               rotate-xyz="x: 1; y: 2; z: 0.5"></a-torus>
+      
+      <!-- Ground level ring -->
+      <a-cone position="-3 1 -2" radius-bottom="0.4" height="1" color="#FF006E" metalness="0.8"
+              float="amplitude: 0.5; speed: 2" rotate-y="speed: 3"
+              bounce-click animation__bounce="property: scale; to: 1.4 1.4 1.4; dur: 200; startEvents: bounce; dir: alternate; loop: 2"></a-cone>
+      <a-cone position="3 1.5 -2" radius-bottom="0.45" height="1.1" color="#FFD60A" metalness="0.8"
+              float="amplitude: 0.6; speed: 2.2" rotate-y="speed: -2.5"></a-cone>
+      <a-cone position="-3 1.2 2" radius-bottom="0.4" height="1.2" color="#4CC3D9" metalness="0.8"
+              float="amplitude: 0.7; speed: 1.8" rotate-y="speed: 2.8"></a-cone>
+      <a-cone position="3 1.8 2" radius-bottom="0.5" height="1.3" color="#06FFA5" metalness="0.8"
+              float="amplitude: 0.8; speed: 2" rotate-y="speed: -3"></a-cone>
+    </a-entity>
+    
+    <!-- CENTER PIECE -->
     <a-entity position="0 2 -5" rotate-y="speed: 0.5">
-      <a-octahedron position="0 0 0" radius="1" color="#FF006E" metalness="0.8" roughness="0.2" pulse></a-octahedron>
-      <a-octahedron position="0 0 0" radius="1.2" color="#8338EC" opacity="0.3" wireframe="true" rotate-y="speed: -1"></a-octahedron>
+      <a-octahedron position="0 0 0" radius="1.2" color="#FF006E" metalness="0.8" roughness="0.2" pulse></a-octahedron>
+      <a-octahedron position="0 0 0" radius="1.5" color="#8338EC" opacity="0.3" wireframe="true" rotate-y="speed: -1"></a-octahedron>
+      
+      <!-- Orbiting spheres -->
+      <a-sphere radius="0.3" color="#FFD60A" metalness="0.9" 
+                orbit="radius: 2.5; speed: 1; height: 0"></a-sphere>
+      <a-sphere radius="0.3" color="#06FFA5" metalness="0.9"
+                orbit="radius: 2.5; speed: -1.2; height: 0.5"></a-sphere>
+      <a-sphere radius="0.3" color="#4CC3D9" metalness="0.9"
+                orbit="radius: 2.5; speed: 0.8; height: -0.5"></a-sphere>
     </a-entity>
     
-    <!-- Floating orbs -->
-    <a-sphere position="-3 2 -4" radius="0.5" color="#06FFA5" metalness="0.9" roughness="0.1" 
-              float="amplitude: 0.8; speed: 1.5" rotate-y="speed: 2"></a-sphere>
+    <!-- GLOWING FLOOR -->
+    <a-cylinder position="0 -0.5 0" radius="8" height="0.3" color="#560BAD" opacity="0.5" metalness="0.9"
+                animation="property: material.opacity; to: 0.8; dir: alternate; dur: 2000; loop: true"></a-cylinder>
+    <a-torus position="0 -0.3 0" radius="5" radius-tubular="0.05" color="#FF006E" opacity="0.6"
+             rotation="90 0 0" rotate-y="speed: 0.8"></a-torus>
+    <a-torus position="0 -0.3 0" radius="6.5" radius-tubular="0.04" color="#06FFA5" opacity="0.5"
+             rotation="90 0 0" rotate-y="speed: -1"></a-torus>
+    <a-torus position="0 -0.3 0" radius="7.5" radius-tubular="0.03" color="#FFD60A" opacity="0.4"
+             rotation="90 0 0" rotate-y="speed: 1.2"></a-torus>
     
-    <a-sphere position="3 2.5 -4" radius="0.5" color="#FFD60A" metalness="0.9" roughness="0.1" 
-              float="amplitude: 0.6; speed: 2" rotate-y="speed: -2"></a-sphere>
-    
-    <a-sphere position="0 3.5 -6" radius="0.4" color="#4CC3D9" metalness="0.9" roughness="0.1" 
-              float="amplitude: 1; speed: 1" rotate-y="speed: 3"></a-sphere>
-    
-    <!-- Interactive cubes -->
-    <a-box position="-2 1 -3" rotation="0 45 0" color="#F72585" metalness="0.7" roughness="0.3"
-           animation="property: rotation; to: 0 405 0; loop: true; dur: 4000; easing: linear"
-           event-set__enter="_event: mouseenter; color: #00FFF0"
-           event-set__leave="_event: mouseleave; color: #F72585"></a-box>
-    
-    <a-box position="2 1 -3" rotation="0 45 0" color="#7209B7" metalness="0.7" roughness="0.3"
-           animation="property: rotation; to: 0 405 0; loop: true; dur: 3000; easing: linear"
-           event-set__enter="_event: mouseenter; color: #00FFF0"
-           event-set__leave="_event: mouseleave; color: #7209B7"></a-box>
-    
-    <!-- Rings -->
-    <a-torus position="0 2 -5" radius="2" radius-tubular="0.05" color="#FF006E" opacity="0.6"
-             rotation="90 0 0" rotate-y="speed: 1"></a-torus>
-    
-    <a-torus position="0 2 -5" radius="2.5" radius-tubular="0.03" color="#3A86FF" opacity="0.4"
-             rotation="70 45 0" rotate-y="speed: -0.8"></a-torus>
-    
-    <!-- Platform -->
-    <a-cylinder position="0 0 -5" radius="4" height="0.2" color="#560BAD" opacity="0.7" 
-                metalness="0.8" roughness="0.4"></a-cylinder>
-    
-    <!-- Particle effects using boxes -->
-    <a-entity id="particles" position="0 2 -5">
-      <a-box position="1.5 0 0" width="0.1" height="0.1" depth="0.1" color="#FFD60A" opacity="0.8"
-             animation="property: position; to: 3 2 0; dur: 2000; loop: true; easing: linear"></a-box>
-      <a-box position="-1.5 0 0" width="0.1" height="0.1" depth="0.1" color="#06FFA5" opacity="0.8"
-             animation="property: position; to: -3 2 0; dur: 2000; loop: true; easing: linear"></a-box>
-      <a-box position="0 0 1.5" width="0.1" height="0.1" depth="0.1" color="#4CC3D9" opacity="0.8"
-             animation="property: position; to: 0 2 3; dur: 2000; loop: true; easing: linear"></a-box>
-      <a-box position="0 0 -1.5" width="0.1" height="0.1" depth="0.1" color="#FF006E" opacity="0.8"
-             animation="property: position; to: 0 2 -3; dur: 2000; loop: true; easing: linear"></a-box>
+    <!-- SPINNING PARTICLE RINGS -->
+    <a-entity id="particle-ring-1" position="0 2 0" rotate-y="speed: 1.5">
+      <a-box position="4 0 0" width="0.15" height="0.15" depth="0.15" color="#FFD60A" metalness="0.9"></a-box>
+      <a-box position="-4 0 0" width="0.15" height="0.15" depth="0.15" color="#06FFA5" metalness="0.9"></a-box>
+      <a-box position="0 0 4" width="0.15" height="0.15" depth="0.15" color="#4CC3D9" metalness="0.9"></a-box>
+      <a-box position="0 0 -4" width="0.15" height="0.15" depth="0.15" color="#FF006E" metalness="0.9"></a-box>
+      <a-box position="2.8 0 2.8" width="0.15" height="0.15" depth="0.15" color="#8338EC" metalness="0.9"></a-box>
+      <a-box position="-2.8 0 2.8" width="0.15" height="0.15" depth="0.15" color="#F72585" metalness="0.9"></a-box>
+      <a-box position="2.8 0 -2.8" width="0.15" height="0.15" depth="0.15" color="#7209B7" metalness="0.9"></a-box>
+      <a-box position="-2.8 0 -2.8" width="0.15" height="0.15" depth="0.15" color="#FFD60A" metalness="0.9"></a-box>
     </a-entity>
     
-    <!-- Lighting -->
-    <a-light type="ambient" intensity="0.4" color="#8338EC"></a-light>
-    <a-light type="point" position="0 3 -5" intensity="1.5" color="#FF006E" 
-             animation="property: intensity; to: 0.5; dir: alternate; dur: 1000; loop: true"></a-light>
-    <a-light type="point" position="-3 2 -4" intensity="1" color="#06FFA5"></a-light>
-    <a-light type="point" position="3 2 -4" intensity="1" color="#FFD60A"></a-light>
+    <a-entity id="particle-ring-2" position="0 3 0" rotate-y="speed: -2">
+      <a-sphere position="6 0 0" radius="0.12" color="#FF006E" metalness="0.9"></a-sphere>
+      <a-sphere position="-6 0 0" radius="0.12" color="#4CC3D9" metalness="0.9"></a-sphere>
+      <a-sphere position="0 0 6" radius="0.12" color="#06FFA5" metalness="0.9"></a-sphere>
+      <a-sphere position="0 0 -6" radius="0.12" color="#FFD60A" metalness="0.9"></a-sphere>
+      <a-sphere position="4.2 0 4.2" radius="0.12" color="#8338EC" metalness="0.9"></a-sphere>
+      <a-sphere position="-4.2 0 4.2" radius="0.12" color="#F72585" metalness="0.9"></a-sphere>
+      <a-sphere position="4.2 0 -4.2" radius="0.12" color="#7209B7" metalness="0.9"></a-sphere>
+      <a-sphere position="-4.2 0 -4.2" radius="0.12" color="#4CC3D9" metalness="0.9"></a-sphere>
+    </a-entity>
     
-    <!-- Text -->
-    <a-text value="Welcome to the Cosmic Realm" position="0 4 -5" align="center" color="#00FFF0" 
-            width="6" font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
-            animation="property: position; to: 0 4.2 -5; dir: alternate; dur: 2000; loop: true; easing: easeInOutSine"></a-text>
-  </a-scene>
-</body>
-</html>
+    <!-- MEGA LIGHTING from all directions -->
+    <a-light type="ambient" intensity="0.6" color="#8338EC"></a-light>
+    <a-light type="point" position="0 3 -5" intensity="2.5" color="#FF006E" 
+             animation="property: intensity; to: 1; dir: alternate; dur: 800; loop: true"></a-light>
+    <a-light type="point" position="-8 3 -8" intensity="1.8" color="#FFD60A"
+             animation="property: intensity; to: 0.7; dir: alternate; dur: 1200; loop: true"></a-light>
+    <a-light type="point" position="8 3 -8" intensity="1.8" color="#06FFA5"
+             animation="property: intensity; to: 0.7; dir: alternate; dur: 1000; loop: true"></a-light>
+    <a-light type="point" position="-8 3 8" intensity="1.8" color="#4CC3D9"
+             animation="property: intensity; to: 0.7; dir: alternate; dur: 1100; loop: true"></a-light>
+    <a-light type="point" position="8 3 8" intensity="1.8" color="#F72585"
+             animation="property: intensity; to: 0.7; dir: alternate; dur: 1300; loop: true"></a-light>
+    <a-light type="point" position="0 10 0" intensity="2" color="#8338EC"
+             animation="property: intensity; to: 0.5; dir: alternate; dur: 1500; loop: true"></a-light>
+    <a-light type="point" position="0 3 15" intensity="2.2" color="#06FFA5"
+             animation="property: intensity; to: 0.8; dir: alternate; dur: 900; loop: true"></a-light>
+    <a-light type="point" position="0 3 -15" intensity="2.2" color="#FFD60A"
+             animation="property: intensity; to: 0.8; dir: alternate; dur: 950; loop: true"></a-light>
+    
+    <!-- ROTATING TEXTS -->
+    <a-text value="∞ ENDLESS COSMOS ∞" position="0 5 -5" align="center" color="#00FFF0" 
+            width="10" font="https://cdn.aframe.io/fonts/Exo2Bold.fnt"
+            animation="property: rotation; to: 0 360 0; dur: 25000; loop: true; easing: linear"></a-text>
+    
+    <a-text value="EXPLORE EVERYWHERE!" position="0 0.3 -3" align="center" color="#FFD60A" 
+            width="4" scale="0.8 0.8 0.8"
+            animation="property: position; to: 0 0.6 -3; dir: alternate; dur: 1500; loop: true; easing: easeInOutSine"></a-text>
